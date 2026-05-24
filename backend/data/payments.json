@@ -1,0 +1,106 @@
+[
+  {
+    "id": "ORD-1779648648017-k0fbwi",
+    "amount": 1500,
+    "description": "????? ?????????",
+    "status": "pending",
+    "createdAt": "2026-05-24T18:50:48.017Z",
+    "paidAt": null
+  },
+  {
+    "id": "ORD-1779649614337-5fkwbp",
+    "amount": 3700,
+    "description": "Прием (осмотр, консультация) первичный",
+    "status": "pending",
+    "createdAt": "2026-05-24T19:06:54.337Z",
+    "paidAt": null
+  },
+  {
+    "id": "ORD-1779649676370-e8q2ak",
+    "amount": 5500,
+    "description": "Хирургическая операция",
+    "status": "pending",
+    "createdAt": "2026-05-24T19:07:56.370Z",
+    "paidAt": null
+  },
+  {
+    "id": "ORD-1779649832023-8v9ye5",
+    "amount": 3700,
+    "description": "Прием (осмотр, консультация) первичный",
+    "status": "paid",
+    "createdAt": "2026-05-24T19:10:32.023Z",
+    "paidAt": "2026-05-24T19:10:34.292Z"
+  },
+  {
+    "id": "ORD-1779649840254-0zyefh",
+    "amount": 3700,
+    "description": "Прием (осмотр, консультация) первичный",
+    "status": "paid",
+    "createdAt": "2026-05-24T19:10:40.254Z",
+    "paidAt": "2026-05-24T19:10:50.007Z"
+  },
+  {
+    "id": "ORD-1779650026459-vc9csf",
+    "amount": 3700,
+    "description": "Прием (осмотр, консультация) первичный",
+    "status": "paid",
+    "createdAt": "2026-05-24T19:13:46.459Z",
+    "paidAt": "2026-05-24T19:13:49.351Z"
+  },
+  {
+    "id": "ORD-1779650178909-fjrajn",
+    "amount": 3700,
+    "description": "Прием (осмотр, консультация) первичный",
+    "status": "paid",
+    "createdAt": "2026-05-24T19:16:18.909Z",
+    "paidAt": "2026-05-24T19:17:00.212Z"
+  },
+  {
+    "id": "ORD-1779650226058-6n1ccp",
+    "amount": 3700,
+    "description": "Прием (осмотр, консультация) первичный",
+    "status": "pending",
+    "createdAt": "2026-05-24T19:17:06.058Z",
+    "paidAt": null
+  },
+  {
+    "id": "ORD-1779650232190-mnrz0p",
+    "amount": 3700,
+    "description": "Прием (осмотр, консультация) первичный",
+    "status": "paid",
+    "createdAt": "2026-05-24T19:17:12.190Z",
+    "paidAt": "2026-05-24T19:17:34.083Z"
+  },
+  {
+    "id": "ORD-1779650259047-3l624l",
+    "amount": 3700,
+    "description": "Прием (осмотр, консультация) первичный",
+    "status": "pending",
+    "createdAt": "2026-05-24T19:17:39.047Z",
+    "paidAt": null
+  },
+  {
+    "id": "ORD-1779650274811-15ufi6",
+    "amount": 3700,
+    "description": "Прием (осмотр, консультация) первичный",
+    "status": "pending",
+    "createdAt": "2026-05-24T19:17:54.811Z",
+    "paidAt": null
+  },
+  {
+    "id": "ORD-1779650429715-bi4mgn",
+    "amount": 3700,
+    "description": "Прием (осмотр, консультация) первичный",
+    "status": "paid",
+    "createdAt": "2026-05-24T19:20:29.715Z",
+    "paidAt": "2026-05-24T19:20:54.250Z"
+  },
+  {
+    "id": "ORD-1779650641049-5dklpx",
+    "amount": 3700,
+    "description": "Прием (осмотр, консультация) первичный",
+    "status": "paid",
+    "createdAt": "2026-05-24T19:24:01.049Z",
+    "paidAt": "2026-05-24T19:24:17.824Z"
+  }
+]

@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Оплата услуг ветеринарной клиники «Здоровая лапка». Онлайн-оплата консультаций, процедур и лечения.">
+    <title>Оплата — Здоровая лапка</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .payment-container {
+            max-width: 560px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+            padding: 32px;
+        }
+        .payment-container h2 {
+            color: #1a3a5c;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 24px;
+        }
+        .back-link {
+            display: block;
+            margin-bottom: 20px;
+            color: #2563eb;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        /* Step indicator */
+        .steps {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 32px;
+            position: relative;
+        }
+        .steps::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 12%;
+            right: 12%;
+            height: 2px;
+            background: #e5e7eb;
+            z-index: 0;
+        }
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+            flex: 1;
+        }
+        .step .circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .step.active .circle { background: #2563eb; color: #fff; }
+        .step.done .circle { background: #10b981; color: #fff; }
+        .step .label { font-size: 12px; color: #9ca3af; text-align: center; }
+        .step.active .label { color: #2563eb; font-weight: 600; }
+        .step.done .label { color: #10b981; }
+
+        /* Form elements */
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block;
+            color: #444;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            border-color: #2563eb;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+        }
+        .btn-primary {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 17px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+
+        /* Payment method cards */
+        .method-list { display: flex; gap: 12px; margin-bottom: 24px; }
+        .method-card {
+            flex: 1;
+            padding: 20px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .method-card:hover { border-color: #93c5fd; background: #f8faff; }
+        .method-card.selected { border-color: #2563eb; background: #eff6ff; }
+        .method-card .icon { font-size: 32px; margin-bottom: 8px; display: block; }
+        .method-card .name { font-size: 13px; font-weight: 600; color: #374151; }
+
+        /* Card input */
+        .card-input-wrap { position: relative; }
+        .card-icons { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: flex; gap: 4px; font-size: 24px; }
+        .card-row { display: flex; gap: 12px; }
+        .card-row .form-group { flex: 1; }
+
+        /* Order summary */
+        .order-summary {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .order-summary .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 14px;
+        }
+        .order-summary .row.total {
+            border-top: 1px solid #e2e8f0;
+            margin-top: 6px;
+            padding-top: 10px;
+            font-weight: 700;
+            font-size: 18px;
+            color: #1a3a5c;
+        }
+
+        /* Success */
+        .success-block { text-align: center; padding: 20px 0; }
+        .success-icon {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: #10b981;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 16px;
+        }
+
+        /* Section visibility */
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .error-msg {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">🐾</span>
+                <span class="logo-text">Здоровая лапка</span>
+            </div>
+            <nav>
+                <a href="index.html">Главная</a>
+                <a href="services.html">Услуги</a>
+                <a href="payment.html" class="active">Оплата</a>
+                <a href="about.html">О клинике</a>
+                <a href="contacts.html">Контакты</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="payment-container">
+
+        <!-- ==================== Step Indicator ==================== -->
+        <div class="steps">
+            <div class="step active" id="step1">
+                <span class="circle">1</span>
+                <span class="label">Заказ</span>
+            </div>
+            <div class="step" id="step2">
+                <span class="circle">2</span>
+                <span class="label">Способ оплаты</span>
+            </div>
+            <div class="step" id="step3">
+                <span class="circle">3</span>
+                <span class="label">Данные карты</span>
+            </div>
+            <div class="step" id="step4">
+                <span class="circle">4</span>
+                <span class="label">Подтверждение</span>
+            </div>
+        </div>
+
+        <!-- ==================== Section 1: Order Form ==================== -->
+        <div class="section active" id="sec1">
+            <h2>Создание заказа</h2>
+            <div class="form-group">
+                <label>Услуга</label>
+                <textarea id="description" rows="2" placeholder="Например: Приём кардиолога, кошка Мурка"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Сумма (₽)</label>
+                <input type="number" id="amount" min="1" step="1" placeholder="Введите сумму">
+            </div>
+            <button class="btn-primary" id="btnCreateOrder">Далее: выбор способа оплаты</button>
+        </div>
+
+        <!-- ==================== Section 2: Payment Method ==================== -->
+        <div class="section" id="sec2">
+            <h2>Выберите способ оплаты</h2>
+            <div class="method-list" id="methodList">
+                <div class="method-card selected" data-method="card">
+                    <span class="icon">💳</span>
+                    <span class="name">Банковская карта</span>
+                </div>
+                <div class="method-card" data-method="sbp">
+                    <span class="icon">📱</span>
+                    <span class="name">СБП</span>
+                </div>
+                <div class="method-card" data-method="wallet">
+                    <span class="icon">💰</span>
+                    <span class="name">Электронный кошелёк</span>
+                </div>
+            </div>
+            <button class="btn-primary" id="btnChooseMethod">Далее: данные карты</button>
+            <button style="display:block;width:100%;padding:12px;margin-top:10px;background:none;border:1px solid #d1d5db;border-radius:8px;color:#6b7280;cursor:pointer;font-size:14px;" id="btnBack1">← Назад</button>
+        </div>
+
+        <!-- ==================== Section 3: Card Details ==================== -->
+        <div class="section" id="sec3">
+            <h2>Данные банковской карты</h2>
+            <p style="color:#6b7280;font-size:13px;margin-bottom:16px;">
+                Это симуляция. Введите любые 16 цифр.
+            </p>
+            <div class="form-group card-input-wrap">
+                <label>Номер карты</label>
+                <input type="text" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19">
+                <span class="card-icons">💳</span>
+            </div>
+            <div class="card-row">
+                <div class="form-group">
+                    <label>ММ / ГГ</label>
+                    <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
+                </div>
+                <div class="form-group">
+                    <label>CVC</label>
+                    <input type="text" id="cardCvc" placeholder="***" maxlength="3">
+                </div>
+            </div>
+            <button class="btn-primary" id="btnConfirmCard">Далее: подтверждение</button>
+            <button style="display:block;width:100%;padding:12px;margin-top:10px;background:none;border:1px solid #d1d5db;border-radius:8px;color:#6b7280;cursor:pointer;font-size:14px;" id="btnBack2">← Назад</button>
+        </div>
+
+        <!-- ==================== Section 4: Confirm & Pay ==================== -->
+        <div class="section" id="sec4">
+            <h2>Подтверждение платежа</h2>
+            <div class="order-summary" id="orderSummary"></div>
+            <button class="btn-primary" id="btnPay" style="background:#10b981;">Оплатить</button>
+            <button style="display:block;width:100%;padding:12px;margin-top:10px;background:none;border:1px solid #d1d5db;border-radius:8px;color:#6b7280;cursor:pointer;font-size:14px;" id="btnBack3">← Назад</button>
+        </div>
+
+        <!-- ==================== Section 5: Success ==================== -->
+        <div class="section" id="sec5">
+            <div class="success-block">
+                <div class="success-icon">✓</div>
+                <h2 style="color:#10b981;margin-bottom:8px;">Оплата прошла успешно!</h2>
+                <p style="color:#6b7280;margin-bottom:20px;" id="successMsg"></p>
+                <a href="services.html" class="btn-primary" style="display:inline-block;width:auto;text-decoration:none;padding:12px 32px;background:#2563eb;">
+                    ← Вернуться к услугам
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Ветеринарная клиника «Здоровая лапка». Все права защищены.</p>
+            <div class="social-links">
+                <a href="https://vk.com/" target="_blank">VK</a>
+                <a href="https://t.me/" target="_blank">Telegram</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+(function() {
+
+    // ---- DOM refs ----
+    var sections = {
+        sec1: document.getElementById('sec1'),
+        sec2: document.getElementById('sec2'),
+        sec3: document.getElementById('sec3'),
+        sec4: document.getElementById('sec4'),
+        sec5: document.getElementById('sec5')
+    };
+    var steps = {
+        step1: document.getElementById('step1'),
+        step2: document.getElementById('step2'),
+        step3: document.getElementById('step3'),
+        step4: document.getElementById('step4')
+    };
+
+    var amountEl = document.getElementById('amount');
+    var descEl = document.getElementById('description');
+    var orderSummary = document.getElementById('orderSummary');
+
+    var currentOrderId = null;
+    var currentAmount = 0;
+    var currentDesc = '';
+    var currentMethod = 'card';
+
+    // ---- Helpers ----
+    function showSection(name) {
+        Object.keys(sections).forEach(function(k) { sections[k].classList.remove('active'); });
+        sections[name].classList.add('active');
+    }
+
+    function setStep(index) {
+        ['step1','step2','step3','step4'].forEach(function(k, i) {
+            var el = steps[k];
+            el.classList.remove('active', 'done');
+            if (i + 1 < index) el.classList.add('done');
+            if (i + 1 === index) el.classList.add('active');
+        });
+    }
+
+    // ---- Init: read URL params ----
+    var params = new URLSearchParams(window.location.search);
+    var svcName = params.get('name');
+    var svcPrice = params.get('price');
+    if (svcName && svcPrice) {
+        descEl.value = svcName;
+        amountEl.value = svcPrice;
+    }
+
+    // ---- Step 1 → Step 2: Create order ----
+    document.getElementById('btnCreateOrder').addEventListener('click', async function() {
+        var amount = amountEl.value;
+        var desc = descEl.value;
+
+        if (!amount || amount <= 0) {
+            alert('Пожалуйста, введите сумму.');
+            return;
+        }
+
+        var btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Создание заказа...';
+
+        try {
+            var resp = await fetch('/api/payment/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: parseInt(amount), description: desc })
+            });
+            if (!resp.ok) { var t = await resp.text(); throw new Error(t); }
+            var data = await resp.json();
+            currentOrderId = data.id;
+            currentAmount = parseInt(amount);
+            currentDesc = desc;
+
+            showSection('sec2');
+            setStep(2);
+        } catch (err) {
+            alert('Ошибка: ' + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Далее: выбор способа оплаты';
+        }
+    });
+
+    // ---- Method selection ----
+    document.getElementById('methodList').addEventListener('click', function(e) {
+        var card = e.target.closest('.method-card');
+        if (!card) return;
+        document.querySelectorAll('.method-card').forEach(function(c) { c.classList.remove('selected'); });
+        card.classList.add('selected');
+        currentMethod = card.getAttribute('data-method');
+    });
+
+    // ---- Step 2 → Step 3 ----
+    document.getElementById('btnChooseMethod').addEventListener('click', function() {
+        showSection('sec3');
+        setStep(3);
+    });
+
+    // ---- Step 3 → Step 4: Validate card ----
+    document.getElementById('btnConfirmCard').addEventListener('click', function() {
+        var num = document.getElementById('cardNumber').value.replace(/\s/g, '');
+        var exp = document.getElementById('cardExpiry').value;
+        var cvc = document.getElementById('cardCvc').value;
+
+        if (num.length < 13 || num.length > 19 || !/^\d+$/.test(num)) {
+            alert('Введите корректный номер карты (13-19 цифр).');
+            return;
+        }
+        if (!/^\d{2}\/\d{2}$/.test(exp)) {
+            alert('Введите срок действия в формате MM/YY.');
+            return;
+        }
+        if (!/^\d{3}$/.test(cvc)) {
+            alert('Введите корректный CVC (3 цифры).');
+            return;
+        }
+
+        // Build order summary
+        orderSummary.innerHTML = [
+            '<div class="row"><span>Заказ</span><span style="word-break:break-all;max-width:280px;">' + currentOrderId + '</span></div>',
+            '<div class="row"><span>Услуга</span><span>' + (currentDesc || '—') + '</span></div>',
+            '<div class="row"><span>Способ оплаты</span><span>Карта ····' + num.slice(-4) + '</span></div>',
+            '<div class="row total"><span>Итого</span><span>' + currentAmount.toLocaleString('ru-RU') + ' ₽</span></div>'
+        ].join('\n');
+
+        showSection('sec4');
+        setStep(4);
+    });
+
+    // ---- Step 4: Pay ----
+    document.getElementById('btnPay').addEventListener('click', async function() {
+        var btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Обработка платежа...';
+
+        try {
+            // Simulate a short delay for realism
+            await new Promise(function(r) { setTimeout(r, 1500); });
+
+            var resp = await fetch('/api/payment/callback?orderId=' + currentOrderId, { method: 'POST' });
+            if (!resp.ok) { var t = await resp.text(); throw new Error(t); }
+            var data = await resp.json();
+
+            document.getElementById('successMsg').textContent =
+                'Заказ ' + currentOrderId + ' на сумму ' + currentAmount.toLocaleString('ru-RU') + ' ₽ оплачен.';
+
+            showSection('sec5');
+            setStep(4);
+            steps.step4.classList.remove('active');
+            steps.step4.classList.add('done');
+
+            // Reset form
+            amountEl.value = '';
+            descEl.value = '';
+
+        } catch (err) {
+            alert('Ошибка оплаты: ' + err.message);
+            btn.disabled = false;
+            btn.textContent = 'Оплатить';
+        }
+    });
+
+    // ---- Back buttons ----
+    document.getElementById('btnBack1').addEventListener('click', function() { showSection('sec1'); setStep(1); });
+    document.getElementById('btnBack2').addEventListener('click', function() { showSection('sec2'); setStep(2); });
+    document.getElementById('btnBack3').addEventListener('click', function() { showSection('sec3'); setStep(3); });
+
+    // ---- Card number formatting ----
+    document.getElementById('cardNumber').addEventListener('input', function(e) {
+        var val = this.value.replace(/\s/g, '').replace(/\D/g, '');
+        var formatted = val.match(/.{1,4}/g);
+        this.value = formatted ? formatted.join(' ') : '';
+    });
+
+    document.getElementById('cardExpiry').addEventListener('input', function(e) {
+        var val = this.value.replace(/\D/g, '');
+        if (val.length >= 2) val = val.slice(0,2) + '/' + val.slice(2,4);
+        this.value = val.slice(0,5);
+    });
+
+    document.getElementById('cardCvc').addEventListener('input', function(e) {
+        this.value = this.value.replace(/\D/g, '').slice(0,3);
+    });
+
+})();
+    </script>
+
+<!-- Yandex.Metrica -->
+<script type="text/javascript">
+   (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+   m[i].l=1*new Date();
+   for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+   k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+   (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+   ym(00000000, "init", {clickmap:true,trackLinks:true,accurateTrackBounce:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/00000000" style="position:absolute;left:-9999px;" alt="" /></div></noscript>
+</body>
+</html>
