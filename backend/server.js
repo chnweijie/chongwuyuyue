@@ -86,7 +86,12 @@ if (paymentRateLimiter) {
 }
 
 // ========== P1: CSRF protection (Origin/Referer check) ==========
-const CSRF_EXEMPT_PATHS = ['/api/payment/yookassa/callback', '/health'];
+const CSRF_EXEMPT_PATHS = [
+  '/api/payment/yookassa/callback',
+  '/api/payment/yookassa/create',
+  '/api/payment/create',
+  '/health'
+];
 function csrfProtection(req, res, next) {
   if (req.method === 'GET') return next();
   if (CSRF_EXEMPT_PATHS.some(p => req.path.startsWith(p))) return next();
