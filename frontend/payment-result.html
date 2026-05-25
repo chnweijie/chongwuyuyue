@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результат оплаты — Здоровая лапка</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .result-container {
+            max-width: 480px;
+            margin: 60px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+            padding: 40px 32px;
+            text-align: center;
+        }
+        .result-icon {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 16px;
+        }
+        .result-icon.success { background: #10b981; color: #fff; }
+        .result-icon.pending { background: #f59e0b; color: #fff; }
+        .result-icon.fail { background: #ef4444; color: #fff; }
+        .result-container h2 { margin-bottom: 8px; font-size: 22px; }
+        .result-container p { color: #6b7280; margin-bottom: 8px; font-size: 14px; }
+        .btn-primary {
+            display: inline-block;
+            padding: 14px 32px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-primary:hover { background: #1d4ed8; }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">🐾</span>
+                <span class="logo-text">Здоровая лапка</span>
+            </div>
+            <nav>
+                <a href="index.html">Главная</a>
+                <a href="services.html">Услуги</a>
+                <a href="payment.html">Оплата</a>
+                <a href="about.html">О клинике</a>
+                <a href="contacts.html">Контакты</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="result-container" id="resultContainer">
+        <div class="spinner" id="spinner"></div>
+        <h2 id="statusTitle">Проверка статуса платежа...</h2>
+        <p id="statusDetail"></p>
+        <a href="services.html" class="btn-primary" id="btnReturn" style="display:none;">← Вернуться к услугам</a>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Ветеринарная клиника «Здоровая лапка». Все права защищены.</p>
+            <div class="social-links">
+                <a href="https://vk.com/" target="_blank">VK</a>
+                <a href="https://t.me/" target="_blank">Telegram</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    (function() {
+        var spinner = document.getElementById('spinner');
+        var statusTitle = document.getElementById('statusTitle');
+        var statusDetail = document.getElementById('statusDetail');
+        var btnReturn = document.getElementById('btnReturn');
+        var container = document.getElementById('resultContainer');
+
+        function showResult(type, title, detail) {
+            spinner.style.display = 'none';
+
+            var iconEl = document.createElement('div');
+            iconEl.className = 'result-icon ' + type;
+            iconEl.textContent = type === 'success' ? '✓' : type === 'fail' ? '✗' : '⏳';
+
+            container.insertBefore(iconEl, statusTitle);
+
+            statusTitle.textContent = title;
+            statusTitle.style.color = type === 'success' ? '#10b981' :
+                                      type === 'fail' ? '#ef4444' : '#f59e0b';
+            statusDetail.textContent = detail;
+            btnReturn.style.display = 'inline-block';
+        }
+
+        async function checkStatus() {
+            try {
+                // 1. 从 localStorage 读取本地订单ID
+                var localOrderId = localStorage.getItem('lastLocalOrderId');
+                if (!localOrderId) {
+                    showResult('fail', 'Заказ не найден',
+                        'Не удалось найти информацию о заказе. Попробуйте снова.');
+                    return;
+                }
+
+                // 2. 获取本地订单信息（含 yookassa_id）
+                var orderResp = await fetch('/api/payment/status?orderId=' + localOrderId);
+                if (!orderResp.ok) {
+                    showResult('fail', 'Заказ не найден',
+                        'Заказ ' + localOrderId + ' не найден в системе.');
+                    return;
+                }
+                var order = await orderResp.json();
+
+                // 3. 用 yookassa_id 查询 YooKassa 真实状态
+                var yookassaId = order.yookassa_id;
+                if (!yookassaId) {
+                    showResult('fail', 'Ошибка заказа',
+                        'В заказе отсутствует идентификатор платежа YooKassa.');
+                    return;
+                }
+
+                var ykResp = await fetch('/api/payment/yookassa/status/' + yookassaId);
+                if (!ykResp.ok) {
+                    showResult('pending',
+                        'Оплата обрабатывается',
+                        'Пожалуйста, подождите. Статус обновится в ближайшее время.');
+                    return;
+                }
+                var ykData = await ykResp.json();
+
+                if (ykData.status === 'succeeded') {
+                    showResult('success',
+                        'Оплата прошла успешно!',
+                        'Заказ ' + localOrderId + ' на сумму ' +
+                        order.amount.toLocaleString('ru-RU') + ' ₽ оплачен.');
+                } else if (ykData.status === 'canceled') {
+                    showResult('fail',
+                        'Платёж отменён',
+                        'Платёж был отменён. Попробуйте снова.');
+                } else {
+                    showResult('pending',
+                        'Оплата обрабатывается',
+                        'Текущий статус: ' + ykData.status + '. Пожалуйста, подождите.');
+                }
+
+            } catch (err) {
+                showResult('pending',
+                    'Оплата обрабатывается',
+                    'Пожалуйста, проверьте статус заказа позже или свяжитесь с нами.');
+            }
+        }
+
+        checkStatus();
+    })();
+    </script>
+
+    <!-- Yandex.Metrica -->
+    <script type="text/javascript">
+       (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+       m[i].l=1*new Date();
+       for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+       k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+       (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+       ym(109395894, "init", {clickmap:true,trackLinks:true,accurateTrackBounce:true});
+    </script>
+    <noscript><div><img src="https://mc.yandex.ru/watch/109395894" style="position:absolute;left:-9999px;" alt="" /></div></noscript>
+</body>
+</html>
